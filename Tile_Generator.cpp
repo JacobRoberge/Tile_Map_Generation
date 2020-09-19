@@ -1,6 +1,5 @@
 #include "Tile_Generator.h"
 #include <random>
-
 #include <iostream>
 
 
@@ -19,6 +18,9 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 		for (int y = 0; y < height * 3 - 1; y++)
 		{
 			map[x][y] = new node;
+			map[x][y]->x = x;
+			map[x][y]->y = y;
+
 		}
 	}
 	this->width = width;
@@ -39,16 +41,16 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 		cout << endl <<"ID IS: " << id << endl;
 
 		//initialize around seed
-		map[x + 1][y + 1]->id = id;
-		map[x + 1][y]->id = id;
-		map[x + 1][y - 1]->id = id;
-		map[x - 1][y + 1]->id = id;
-		map[x - 1][y]->id = id;
-		map[x - 1][y -1]->id = id;
-		map[x][y + 1]->id = id;
-		map[x][y - 1]->id = id;
+		// map[x + 1][y + 1]->id = id;
+		// map[x + 1][y]->id = id;
+		// map[x + 1][y - 1]->id = id;
+		// map[x - 1][y + 1]->id = id;
+		// map[x - 1][y]->id = id;
+		// map[x - 1][y -1]->id = id;
+		// map[x][y + 1]->id = id;
+		// map[x][y - 1]->id = id;
 
-		map[x][y]->id = 'X';
+		map[x][y]->id = id;
 
 		
 	}
@@ -56,11 +58,11 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 	int counter = 1;
 	while(!is_finished_propagating && counter < width-1)
 	{
-		Show_Result();
-		is_finished_propagating = Seed_Propagate(counter);
+		is_finished_propagating = Seed_Propagate_v2(counter);
 		counter++;
 		cout << endl;
 	}
+	Show_Result();
 
 	
 
@@ -228,14 +230,33 @@ bool Tile_Generator::Seed_Propagate_v2(int counter)
 		char id = seeds[i]->id;
 		int seedX = seeds[i]->x;
 		int seedY = seeds[i]->y;
-		for (int x = seedX - counter + 1; x < seedX + counter; x++)
+		for (int x = seedX - counter; x < seedX + counter+1; x++)
 		{
-			if(map[x][seedY + counter + 1])
-		
+			if(Check_Location(id, x,seedY + counter))
+			{
+				map[x][seedY + counter]->id = id;
+				finished = false;
+
+			}
+			if (Check_Location(id, x, seedY - counter))
+			{
+				map[x][seedY - counter]->id = id;
+				finished = false;
+
+			}
 		}
-		for (int x = seedY - counter + 1; x < seedY + counter; x++)
+		for (int y = seedY - counter + 1; y < seedY + counter; y++)
 		{
-			
+			if (Check_Location(id, seedX + counter, y))
+			{
+				map[seedX + counter][y]->id = id;
+				finished = false;
+			}
+			if (Check_Location(id, seedX - counter, y))
+			{
+				map[seedX - counter][y]->id = id;
+				finished = false;
+			}
 		}
 
 
@@ -257,13 +278,59 @@ bool Tile_Generator::Seed_Propagate_v2(int counter)
 	return false;
 }
 
+bool Tile_Generator::Check_Location(char id, int x, int y)
+{
+	bool IsSafe = true;
+	if (map[x + 1][y]->id != 'O' && map[x + 1][y]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x - 1][y]->id != 'O' && map[x - 1][y]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x][y + 1]->id != 'O' && map[x][y + 1]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x][y - 1]->id != 'O' && map[x][y - 1]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x + 1][y + 1]->id != 'O' && map[x + 1][y + 1]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x + 1][y - 1]->id != 'O' && map[x + 1][y - 1]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x - 1][y + 1]->id != 'O' && map[x - 1][y + 1]->id != id)
+	{
+		IsSafe = false;
+	}
+	if (map[x - 1][y - 1]->id != 'O' && map[x - 1][y - 1]->id != id)
+	{
+ 		IsSafe = false;
+	}
+	return IsSafe;
+}
+
 void Tile_Generator::Show_Result()
 {
 	for (int x = width; x < width*2-1; x++)
 	{
 		for (int y = height; y < height*2-1; y++)
 		{
-			cout << map[x][y]->id;
+			if(map[x][y]->id == 'O')
+			{
+				cout << char(219);
+			}
+			else
+			{
+				cout << '0';
+			}
+			//cout << map[x][y]->id;
 		}
 		cout << endl;
 
@@ -337,7 +404,103 @@ void Tile_Generator::Clean_Pathways()
 	//map[x][y]->id = 'X';
 }
 
-void Tile_Generator::Classify_Tiles()
+void Tile_Generator::Classify_Tile(int x, int y)
 {
+	
+
+	
+	
+	
+}
+
+void Tile_Generator::DFS_Classify()
+{
+	int x = width;
+	int y = height;
+	while (true)
+	{
+		if (map[x][y]->id == 'O')
+		{
+			break;
+		}
+		x++;
+	}
+	vector<node*> DFSStack;
+	DFSStack.push_back(map[x][y]);
+	
+	seeds.clear();
+	int NumAdj, Numvert, NumHorz;
+	while(!DFSStack.empty())
+	{
+		//checking for surrounding info
+		NumAdj, Numvert, NumHorz = 0;
+		if (map[x + 1][y]->id == 'O')
+		{
+			NumHorz++;
+			NumAdj++;
+		}
+		if (map[x - 1][y]->id == 'O')
+		{
+			NumHorz++;
+			NumAdj++;
+		}
+		if (map[x][y + 1]->id == 'O')
+		{
+			Numvert++;
+			NumAdj++;
+		}
+		if (map[x][y - 1]->id == 'O')
+		{
+			Numvert++;
+			NumAdj++;
+		}
+		if (map[x + 1][y + 1]->id == 'O')
+		{
+			NumAdj++;
+		}
+		if (map[x + 1][y - 1]->id == 'O')
+		{
+			NumAdj++;
+		}
+		if (map[x - 1][y + 1]->id == 'O')
+		{
+			NumAdj++;
+		}
+		if (map[x - 1][y - 1]->id == 'O')
+		{
+			NumAdj++;
+		}
+		// classifying shape of tile
+		if(NumAdj == 2 && Numvert == 2)
+		{
+			map[x][y]->shape = TileShape::VerticalHall;
+		}
+		else if(NumAdj == 2 && NumHorz == 2)
+		{
+			map[x][y]->shape = TileShape::HorizontalHall;
+
+		}
+		else if (NumAdj == 2 && NumHorz == 2)
+		{
+
+		}
+		else if ()
+		{
+
+		}
+		else if ()
+		{
+
+		}
+		else if ()
+		{
+
+		}
+
+		
+	}
+	
+
+
 	
 }

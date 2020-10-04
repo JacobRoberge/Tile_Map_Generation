@@ -1,6 +1,9 @@
 #include "Tile_Generator.h"
 #include <random>
 #include <iostream>
+#include <stack>
+
+using namespace std;
 
 
 Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
@@ -13,9 +16,9 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 	node* test = new node;
 	
 	map.resize(width * 3, vector<node*>(height * 3));
-	for (int x = 0; x < width * 3 - 1; x++)
+	for (int x = 0; x < width * 3; x++)
 	{
-		for (int y = 0; y < height * 3 - 1; y++)
+		for (int y = 0; y < height * 3; y++)
 		{
 			map[x][y] = new node;
 			map[x][y]->x = x;
@@ -38,7 +41,6 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 		test->id = id;
 		seeds.push_back(test);
 
-		cout << endl <<"ID IS: " << id << endl;
 
 		//initialize around seed
 		// map[x + 1][y + 1]->id = id;
@@ -60,8 +62,10 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 	{
 		is_finished_propagating = Seed_Propagate_v2(counter);
 		counter++;
-		cout << endl;
 	}
+	cout << endl;
+
+	DFS_Classify();
 	Show_Result();
 
 	
@@ -208,7 +212,6 @@ bool Tile_Generator::Seed_Propagate(int counter)
 
 		if(finished)
 		{
-			cout << "erased seed of id: " << seeds[i]->id << endl;
 
 			seeds.erase(seeds.begin() + i);
 		}
@@ -269,7 +272,6 @@ bool Tile_Generator::Seed_Propagate_v2(int counter)
 
 		if (finished)
 		{
-			cout << "erased seed of id: " << seeds[i]->id << endl;
 
 			seeds.erase(seeds.begin() + i);
 		}
@@ -318,13 +320,17 @@ bool Tile_Generator::Check_Location(char id, int x, int y)
 
 void Tile_Generator::Show_Result()
 {
-	for (int x = width; x < width*2-1; x++)
+	for (int y = height; y < height * 2 - 1; y++)
 	{
-		for (int y = height; y < height*2-1; y++)
+		for (int x = width; x < width * 2 - 1; x++)
 		{
 			if(map[x][y]->id == 'O')
 			{
 				cout << char(219);
+			}
+			else if (map[x][y]->id == char(177))
+			{
+				cout << char(177);
 			}
 			else
 			{
@@ -415,8 +421,9 @@ void Tile_Generator::Classify_Tile(int x, int y)
 
 void Tile_Generator::DFS_Classify()
 {
+	int counter = 0;
 	int x = width;
-	int y = height;
+	int y = height + 10;
 	while (true)
 	{
 		if (map[x][y]->id == 'O')
@@ -425,81 +432,235 @@ void Tile_Generator::DFS_Classify()
 		}
 		x++;
 	}
-	vector<node*> DFSStack;
-	DFSStack.push_back(map[x][y]);
-	
+	stack<node*> DFSStack;
+	DFSStack.push(map[x][y]);
+
 	seeds.clear();
-	int NumAdj, Numvert, NumHorz;
+	directions prevDir = directions::none;
+	node* prevNode = map[x][y];
 	while(!DFSStack.empty())
 	{
+		node* CurrNode = DFSStack.top();
+		DFSStack.pop();
+		CurrNode->classified = true;
+		x = CurrNode->x;
+		y = CurrNode->y;
+
+		if(x < width -1 || x > width*2 || y < height -1 || y > height *2)
+		{
+			continue;
+		}
+
+		
 		//checking for surrounding info
-		NumAdj, Numvert, NumHorz = 0;
+		int NumAdj = 0;
+		int Numvert = 0;
+		int NumHorz = 0;
+		bool isTileTop = false;
+		bool isTileLeft = false;
+		int dirCounter = 0;
+		directions dir = none;
 		if (map[x + 1][y]->id == 'O')
 		{
 			NumHorz++;
 			NumAdj++;
+
+			if (!map[x + 1][y]->inStack)
+			{
+				DFSStack.push(map[x + 1][y]);
+				map[x + 1][y]->inStack = true;
+				dir = directions::east;
+			}
+			
 		}
+		else
+		{
+			map[x + 1][y]->id = char(177);
+		}
+		
 		if (map[x - 1][y]->id == 'O')
 		{
+			isTileLeft = true;
 			NumHorz++;
 			NumAdj++;
+			if (!map[x - 1][y]->inStack)
+			{
+				DFSStack.push(map[x - 1][y]);
+				map[x - 1][y]->inStack = true;
+				dir = directions::west;
+
+			}
 		}
+		else
+		{
+			map[x - 1][y]->id = char(177);
+		}
+		
 		if (map[x][y + 1]->id == 'O')
 		{
+			isTileTop = true;
 			Numvert++;
 			NumAdj++;
+			if (!map[x][y + 1]->inStack)
+			{
+				DFSStack.push(map[x][y + 1]);
+				map[x][y + 1]->inStack = true;
+				dir = directions::north;
+
+			}
 		}
+		else
+		{
+			map[x][y + 1]->id = char(177);
+		}
+		
 		if (map[x][y - 1]->id == 'O')
 		{
 			Numvert++;
 			NumAdj++;
+			if (!map[x][y - 1]->inStack)
+			{
+				DFSStack.push(map[x][y - 1]);
+				map[x][y - 1]->inStack = true;
+				dir = directions::south;
+
+			}
+			
 		}
+		else
+		{
+			map[x][y - 1]->id = char(177);
+		}
+		
 		if (map[x + 1][y + 1]->id == 'O')
 		{
 			NumAdj++;
+			if (!map[x + 1][y + 1]->inStack)
+			{
+				DFSStack.push(map[x + 1][y + 1]);
+				map[x + 1][y + 1]->inStack = true;
+				dir = directions::northeast;
+
+			}
 		}
+		else
+		{
+			map[x + 1][y + 1]->id = char(177);
+		}
+		
 		if (map[x + 1][y - 1]->id == 'O')
 		{
 			NumAdj++;
+			if (!map[x + 1][y - 1]->inStack)
+			{
+				DFSStack.push(map[x + 1][y - 1]);
+				map[x + 1][y - 1]->inStack = true;
+				dir = directions::southeast;
+
+			}
 		}
+		else
+		{
+			map[x + 1][y - 1]->id = char(177);
+		}
+		
 		if (map[x - 1][y + 1]->id == 'O')
 		{
 			NumAdj++;
+			if (!map[x - 1][y + 1]->inStack)
+			{
+				DFSStack.push(map[x - 1][y + 1]);
+				map[x - 1][y + 1]->inStack = true;
+				dir = directions::northwest;
+
+			}
 		}
+		else
+		{
+			map[x - 1][y + 1]->id = char(177);
+		}
+		
 		if (map[x - 1][y - 1]->id == 'O')
 		{
 			NumAdj++;
+			if (!map[x - 1][y - 1]->inStack)
+			{
+				DFSStack.push(map[x - 1][y - 1]);
+				map[x - 1][y - 1]->inStack = true;
+				dir = directions::southwest;
+
+			}
 		}
+		else
+		{
+			map[x - 1][y - 1]->id = char(177);
+		}
+		
 		// classifying shape of tile
 		if(NumAdj == 2 && Numvert == 2)
 		{
 			map[x][y]->shape = TileShape::VerticalHall;
+			dirCounter++;
 		}
 		else if(NumAdj == 2 && NumHorz == 2)
 		{
 			map[x][y]->shape = TileShape::HorizontalHall;
 
+
 		}
-		else if (NumAdj == 2 && NumHorz == 2)
+		else if (Numvert == 1 && NumHorz == 1 && isTileLeft)
 		{
+			map[x][y]->isCorner = true;
+
+			if(isTileTop)
+			{
+				map[x][y]->shape = TileShape::TopLeftCorner;
+			}
+			else
+			{
+				map[x][y]->shape = TileShape::BotLeftCorner;
+			}
 
 		}
-		else if ()
+		else if (Numvert == 1 && NumHorz == 1 && !isTileLeft)
 		{
+			map[x][y]->isCorner = true;
 
+			if (isTileTop)
+			{
+				map[x][y]->shape = TileShape::TopRightCorner;
+			}
+			else
+			{
+				map[x][y]->shape = TileShape::BotRightCorner;
+			}
 		}
-		else if ()
+		else
 		{
-
+			
 		}
-		else if ()
+
+		if (prevDir == dir)
 		{
-
+			dirCounter++;
+		}
+		else if (dirCounter > 7)
+		{
+			while(dirCounter > 7)
+			{
+				if(dir == directions::north)
+				{
+					
+				}
+			}
 		}
 
+		prevDir = dir;
+		prevNode = CurrNode;
+		counter++;
 		
 	}
-	
+	cout << counter << endl;
 
 
 	

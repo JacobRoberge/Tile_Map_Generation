@@ -8,9 +8,11 @@ private:
 	enum NodeState {white,grey, black};
 	enum TileShape
 	{
-		VerticalHall, HorizontalHall, BotLeftCorner, BotRightCorner, TopLeftCorner, TopRightCorner, VertTopT, VertBotT,
+		VerticalHall, HorizontalHall, BotLeftCorner, BotRightCorner,
+		TopLeftCorner, TopRightCorner, VertTopT, VertBotT,
 		HorzLeftT, HorzRightT, TopWall, BotWall, LeftWall, RightWall
 	};
+	enum directions{north,east,south,west,northeast,southeast,southwest,northwest,none};
 	enum TileType
 	{
 		Caverns
@@ -30,14 +32,18 @@ private:
 		int x, y;
 		char id = 'O';
 		bool classified = false;
+		bool inStack = false;
+		bool isCorner = false;
 		TileShape shape;
 		TileType type;
+		
 		//bool 
 	};
 	vector<vector<node*>> map;
 	vector<seed*> seeds;
 	vector<int> tester;
 	int width, height;
+	
 	
 public:
 	Tile_Generator(int width, int height, int NumSeeds);
@@ -48,6 +54,7 @@ public:
 	void Clean_Pathways();
 	void Classify_Tile(int x, int y);
 	void DFS_Classify();
+	
 	
 	
 	

@@ -1,11 +1,4 @@
 ﻿  Main.cpp
   Tile_Generator.cpp
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(487,12): error C2059: syntax error: ')'
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(488,3): error C2143: syntax error: missing ';' before '{'
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(491,3): error C2181: illegal else without matching if
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(491,12): error C2059: syntax error: ')'
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(492,3): error C2143: syntax error: missing ';' before '{'
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(495,3): error C2181: illegal else without matching if
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(495,12): error C2059: syntax error: ')'
-F:\C++ projects\Tile_Map_Generation\Tile_Generator.cpp(496,3): error C2143: syntax error: missing ';' before '{'
   Generating Code...
+  Tile_Map_Generator.vcxproj -> F:\C++ projects\Tile_Map_Generation\x64\Debug\Tile_Map_Generator.exe

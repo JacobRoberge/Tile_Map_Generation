@@ -15,12 +15,12 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 
 	node* test = new node;
 	
-	map.resize(width * 3, vector<node*>(height * 3));
+	map.resize(width * 3, vector<shared_ptr<node>>(height * 3));
 	for (int x = 0; x < width * 3; x++)
 	{
 		for (int y = 0; y < height * 3; y++)
 		{
-			map[x][y] = new node;
+			map[x][y] = make_shared<node>();
 			map[x][y]->x = x;
 			map[x][y]->y = y;
 
@@ -35,11 +35,12 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 	{
 		int x = RandNumX(gen);
 		int y = RandNumY(gen);
-		seed* test = new seed(x,y);
 		char id = char(i);
-		//id = 'F';
-		test->id = id;
-		seeds.push_back(test);
+		seeds.push_back(make_shared<node>());
+		seeds.back()->x = x;
+		seeds.back()->y = y;
+		seeds.back()->id = id;
+
 
 
 		//initialize around seed
@@ -66,6 +67,7 @@ Tile_Generator::Tile_Generator(int width, int height, int NumSeeds)
 	cout << endl;
 
 	DFS_Classify();
+	Deal_With_Room_Seeds();
 	Show_Result();
 
 	
@@ -332,6 +334,10 @@ void Tile_Generator::Show_Result()
 			{
 				cout << char(177);
 			}
+			else if (map[x][y]->id == 'S' || map[x][y]->id == 'F')
+			{
+				cout << map[x][y]->id;
+			}
 			else
 			{
 				cout << '0';
@@ -432,15 +438,17 @@ void Tile_Generator::DFS_Classify()
 		}
 		x++;
 	}
-	stack<node*> DFSStack;
+	stack<shared_ptr<node>> DFSStack;
 	DFSStack.push(map[x][y]);
 
 	seeds.clear();
 	directions prevDir = directions::none;
-	node* prevNode = map[x][y];
+	shared_ptr<node> prevNode = map[x][y];
+	int dirCounter = 0;
+
 	while(!DFSStack.empty())
 	{
-		node* CurrNode = DFSStack.top();
+		shared_ptr<node> CurrNode = DFSStack.top();
 		DFSStack.pop();
 		CurrNode->classified = true;
 		x = CurrNode->x;
@@ -458,7 +466,6 @@ void Tile_Generator::DFS_Classify()
 		int NumHorz = 0;
 		bool isTileTop = false;
 		bool isTileLeft = false;
-		int dirCounter = 0;
 		directions dir = none;
 		if (map[x + 1][y]->id == 'O')
 		{
@@ -648,11 +655,29 @@ void Tile_Generator::DFS_Classify()
 		{
 			while(dirCounter > 7)
 			{
-				if(dir == directions::north)
+				switch(prevDir)
 				{
-					
+				case directions::north:
+					seeds.push_back(map[x][y - 3]);
+					break;
+				case directions::east:
+					seeds.push_back(map[x - 3][y]);
+					break;
+				case directions::south:
+					seeds.push_back(map[x][y + 3]);
+					break;
+				case directions::west:
+					seeds.push_back(map[x + 3][y]);
+					break;
 				}
+				dirCounter = 0;
+
+				break;
 			}
+		}
+		else
+		{
+			dirCounter = 0;
 		}
 
 		prevDir = dir;
@@ -664,4 +689,60 @@ void Tile_Generator::DFS_Classify()
 
 
 	
+}
+
+void Tile_Generator::Deal_With_Room_Seeds()
+{
+	while(!seeds.empty())
+	{
+		Create_Room(seeds.back());
+		seeds.pop_back();
+	}
+}
+
+bool Tile_Generator::Create_Room(shared_ptr<node> seed)
+{
+	int deltaX = 2;
+	int deltaY = 2;
+	int seedX = seed->x;
+	int seedY = seed->y;
+
+	cout << "called create_room" << endl;
+	map[seedX][seedY]->id = 'S';
+
+	for (int x = seedX - deltaX -1; x < seedX + deltaX + 2; x++)
+	{
+		if (map[x][seedY + deltaY]->id == 'O')
+		{
+			return false;
+
+		}
+		if (map[x][seedY - deltaY]->id == 'O')
+		{
+			return false;
+
+
+		}
+		map[x][seedY + deltaY+1]->id = 'F';
+		map[x][seedY - deltaY-1]->id = 'F';
+	}
+	for (int y = seedY - deltaY; y < seedY + deltaY+1; y++)
+	{
+		
+		map[seedX + deltaY+1][y]->id = 'F';
+		map[seedX - deltaY-1][y]->id = 'F';
+		if (map[seedX + deltaX + 1][y]->id == 'O')
+		{
+
+			return false;
+
+		}
+		if (!map[seedX - deltaX+1][y]->id == 'O')
+		{
+			//map[seedX - deltaY][y]->id = 'F';
+			return false;
+		}
+	}
+	
+	return true;
 }

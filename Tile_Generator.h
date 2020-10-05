@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 
 using namespace std;
@@ -39,8 +40,9 @@ private:
 		
 		//bool 
 	};
-	vector<vector<node*>> map;
-	vector<seed*> seeds;
+	vector<vector<shared_ptr<node>>> map;
+	
+	vector<shared_ptr<node>> seeds;
 	vector<int> tester;
 	int width, height;
 	
@@ -54,6 +56,8 @@ public:
 	void Clean_Pathways();
 	void Classify_Tile(int x, int y);
 	void DFS_Classify();
+	void Deal_With_Room_Seeds();
+	bool Create_Room(shared_ptr<node> seed);
 	
 	
 	
